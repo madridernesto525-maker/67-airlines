@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos del Pasajero - 67 Airlines</title>
+    <style>
+        body {
+            background-color: rgb(21, 69, 136);
+            font-family: Arial, sans-serif;
+            padding: 25px;
+            display: flex;
+            justify-content: center;
+        }
+        .img-esquina {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 110px;
+            height: auto;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            z-index: 10;
+        }
+        .card {
+            background: rgb(244, 246, 246);
+            padding: 25px 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+        .resumen {
+            background: #f0f4ff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .campo {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        input {
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 11px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .btn-secundario {
+            background: #6c757d;
+        }
+        .btn-secundario:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo 67 Airlines" class="img-esquina">
+    <div class="card">
+        <h2>Datos del Pasajero</h2>
+
+        <div class="resumen">
+            {% if es_redondo and obj_ida and obj_regreso %}
+                <p><b>Vuelo de ida:</b> {{ obj_ida.codigo }} ({{ obj_ida.origen }} ➔ {{ obj_ida.destino }} | {{ obj_ida.horario }}) — ${{ "%.2f"|format(precio_ida) }} MXN</p>
+                <p><b>Vuelo de regreso:</b> {{ obj_regreso.codigo }} ({{ obj_regreso.origen }} ➔ {{ obj_regreso.destino }} | {{ obj_regreso.horario }}) — ${{ "%.2f"|format(precio_regreso) }} MXN</p>
+                <p><b>Categoría elegida:</b> {{ categoria.upper() }}</p>
+                <p><b>Asiento asignado:</b> {{ asiento }}</p>
+                <p><b>Total estimado:</b> ${{ "%.2f"|format(precio_total if precio_total is defined else precio) }} MXN</p>
+            {% else %}
+                <p><b>Vuelo:</b> {{ vuelo.codigo }} ({{ vuelo.origen }} ➔ {{ vuelo.destino }})</p>
+                <p><b>Horario:</b> {{ vuelo.horario }}</p>
+                <p><b>Categoría elegida:</b> {{ categoria.upper() }}</p>
+                <p><b>Asiento asignado:</b> {{ asiento }}</p>
+                {% if vuelo_ida %}
+                    <p><b>Vuelo de ida:</b> {{ vuelo_ida }}</p>
+                {% endif %}
+                {% if vuelo_regreso %}
+                    <p><b>Vuelo de regreso:</b> {{ vuelo_regreso }}</p>
+                {% endif %}
+                <p><b>Precio:</b> ${{ "%.2f"|format(precio) }} MXN</p>
+            {% endif %}
+        </div>
+
+        <form method="POST">
+            <input type="hidden" name="categoria" value="{{ categoria }}">
+            <input type="hidden" name="asiento" value="{{ asiento }}">
+            <input type="hidden" name="precio" value="{{ precio_total if precio_total is defined else precio }}">
+            <input type="hidden" name="vuelo_ida" value="{{ vuelo_ida }}">
+            <input type="hidden" name="vuelo_regreso" value="{{ vuelo_regreso }}">
+
+            <div class="campo">
+                <label for="nombre">Nombre(s)</label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ej. Luis">
+            </div>
+
+            <div class="campo">
+                <label for="apellido">Apellidos</label>
+                <input type="text" id="apellido" name="apellido" required placeholder="Ej. Pérez García">
+            </div>
+
+            <div class="campo">
+                <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+            </div>
+
+            <div class="campo">
+                <label for="correo">Correo electrónico</label>
+                <input type="email" id="correo" name="correo" required placeholder="correo@ejemplo.com">
+            </div>
+
+            <div class="campo">
+                <label for="telefono">Teléfono</label>
+                <input type="tel" id="telefono" name="telefono" required placeholder="Ej. 6641234567">
+            </div>
+
+            <div class="campo">
+                <label for="documento">Pasaporte o identificación(ine o acta de nacimiento en caso de ser menor de edad)</label>
+                <input type="text" id="documento" name="documento" placeholder="Opcional / Ej. CURP o INE">
+            </div>
+
+            <button type="submit">Continuar a pago</button>
+            <button type="button" class="btn-secundario" onclick="window.location.href='/reservar/{{ vuelo.codigo }}?vuelo_ida={{ vuelo_ida }}&vuelo_regreso={{ vuelo_regreso }}'">
+                Regresar a asientos
+            </button>
+        </form>
+    </div>
+</body>
+</html>

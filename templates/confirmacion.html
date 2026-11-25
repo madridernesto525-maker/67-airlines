@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación - 67 Airlines</title>
+    <style>
+        body {
+            background-color: rgb(224, 233, 236);
+            background-image: url("{{ url_for('static', filename='logo.jpeg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div style="background: rgba(250, 254, 255, 0.92); padding: 30px; border-radius: 10px; width: 500px; border: 2px dashed #333;">
+        <h2 style="color: green; text-align: center;">¡RESERVA CONFIRMADA! </h2>
+        <p style="text-align: center;">Gracias por volar con <b>67 Airlines</b> "La mejor aerolinea para viajar"</p>
+        <hr>
+
+       {% if not es_redondo %}
+            <p><b>Vuelo:</b> {{ vuelo.codigo }}</p>
+            <p><b>Ruta:</b> {{ vuelo.origen }} ➔ {{ vuelo.destino }}</p>
+            <p><b>Horario:</b> {{ vuelo.horario }}</p>
+            <p><b>Categoría elegida:</b> {{ categoria.upper() }}</p>
+            <p><b>Asiento asignado:</b> {{ asiento }}</p>
+        {% endif %}
+
+        {% if es_redondo and obj_ida and obj_regreso %}
+            <hr>
+            <p><b>Vuelo de ida:</b> {{ obj_ida.codigo }} ({{ obj_ida.origen }} ➔ {{ obj_ida.destino }} | {{ obj_ida.horario }}) — ${{ "%.2f"|format(precio_ida) }} MXN</p>
+            <p><b>Vuelo de regreso:</b> {{ obj_regreso.codigo }} ({{ obj_regreso.origen }} ➔ {{ obj_regreso.destino }} | {{ obj_regreso.horario }}) — ${{ "%.2f"|format(precio_regreso) }} MXN</p>
+            <p><b>Categoría elegida:</b> {{ categoria.upper() }}</p>
+            <p><b>Asiento asignado:</b> {{ asiento }}</p>
+        {% else %}
+            {% if vuelo_ida %}
+                <p><b>Vuelo de ida:</b> {{ vuelo_ida }}</p>
+            {% endif %}
+            {% if vuelo_regreso %}
+                <p><b>Vuelo de regreso:</b> {{ vuelo_regreso }}</p>
+            {% endif %}
+        {% endif %}
+
+        <p style="font-size: 18px;"><b>Total a Pagar:</b> ${{ "%.2f"|format(precio_total if precio_total is defined else precio) }} MXN</p>
+        
+    
+        <h3>Datos del Pasajero</h3>
+        <p><b>Nombre:</b> {{ pasajero.nombre }} {{ pasajero.apellido }}</p>
+        <p><b>Fecha de nacimiento:</b> {{ pasajero.fecha_nacimiento }}</p>
+        <p><b>Correo:</b> {{ pasajero.correo }}</p>
+        <p><b>Teléfono:</b> {{ pasajero.telefono }}</p>
+        <p><b>Identificación:</b> {{ pasajero.documento }}</p>
+
+        {% if pago %}
+        <hr>
+        <h3>Detalle de Pago </h3>
+        <p><b>Banco:</b> {{ pago.banco }}</p>
+        <p><b>Titular:</b> {{ pago.titular }}</p>
+        <p><b>Tarjeta ingresada:</b> {{ pago.numero_tarjeta }}</p>
+        <p><b>Vencimiento:</b> {{ pago.vencimiento }}</p>
+        {% endif %}
+        
+        <hr>
+        <a href="/" style="text-decoration: none; background: #333; color: white; padding: 10px 15px; display: block; text-align: center; border-radius: 5px;">regresar a pagina principal</a>
+        <hr>
+    </div>
+</body>
+</html>

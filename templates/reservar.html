@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar - 67 Airlines</title>
+    <style>
+        body {
+            background-color: rgb(19, 134, 216);
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            color: #111;
+        }
+        .img-esquina {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: auto;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            z-index: 10;
+        }
+        .encabezado {
+            background: rgba(255, 255, 255, 0.94);
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            max-width: 1050px;
+        }
+        .clases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            max-width: 1050px;
+            margin-bottom: 24px;
+        }
+        .clase-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .clase-card:hover {
+            transform: translateY(-3px);
+        }
+        .clase-card.activa {
+            border-color: #198754;
+            background: #f2fff7;
+        }
+        .clase-card h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #0d3b8e;
+        }
+        .precio-clase {
+            font-size: 20px;
+            font-weight: bold;
+            color: #198754;
+            margin-bottom: 10px;
+        }
+        .clase-card ul {
+            padding-left: 18px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .clase-card li {
+            margin-bottom: 6px;
+        }
+        .panel-asientos {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            max-width: 1050px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+        .cabina {
+            background: #eef3fb;
+            border: 2px solid #9cb4dc;
+            border-radius: 28px;
+            padding: 20px;
+            margin: 16px 0 22px;
+        }
+        .frente-avion {
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            color: #2c4c7e;
+            background: #d7e3f7;
+            padding: 6px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+        .seccion-asientos {
+            margin-bottom: 18px;
+        }
+        .seccion-asientos h4 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #1b365d;
+        }
+        .fila-asientos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .asiento-btn {
+            padding: 8px 10px;
+            min-width: 62px;
+            border-radius: 6px;
+            border: 2px solid #198754;
+            background: #e9f9ef;
+            color: #0f5132;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .asiento-btn:hover:not(:disabled) {
+            background: #198754;
+            color: white;
+        }
+        .asiento-btn.seleccionado {
+            background: #0d6efd;
+            border-color: #0a58ca;
+            color: white;
+        }
+        .asiento-btn.ocupado {
+            background: #e2e6ea;
+            border-color: #adb5bd;
+            color: #6c757d;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        .leyenda {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+        .form-reserva {
+            background: rgb(16, 54, 192);
+            color: white;
+            padding: 18px;
+            border-radius: 8px;
+            max-width: 460px;
+        }
+        .form-reserva input, .form-reserva select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 14px;
+            border-radius: 5px;
+            border: none;
+            box-sizing: border-box;
+        }
+        .btn-confirmar {
+            background: #28a745;
+            color: white;
+            padding: 11px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            font-size: 15px;
+        }
+        .btn-confirmar:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo 67 Airlines" class="img-esquina">
+
+    <div class="encabezado">
+        <h1 style="margin: 0 0 6px;">Reservación para el vuelo: {{ vuelo.codigo }}</h1>
+        <p style="margin: 0;"><b>Ruta:</b> {{ vuelo.origen }} ➔ {{ vuelo.destino }} | <b>Horario:</b> {{ vuelo.horario }}</p>
+    </div>
+
+    {% if mensaje %}
+        <p style="color: #fff; background: #dc3545; padding: 10px 14px; border-radius: 6px; font-weight: bold; max-width: 1050px;">{{ mensaje }}</p>
+    {% endif %}
+
+    <!-- 3 TARJETAS DE ESPECIFICACIONES POR CLASE -->
+    <div class="clases-grid">
+        <div class="clase-card" id="card-economica" onclick="seleccionarCategoria('economica')">
+            <h3>Clase Económica</h3>
+            <div class="precio-clase">${{ "%.2f"|format(vuelo.precio_base * 1.0) }} MXN</div>
+            <p style="margin: 4px 0;"><b>Asientos libres:</b> {{ vuelo.asientos_libres_economica() }} / 10</p>
+            <ul>
+                <li>1 artículo personal incluido</li>
+                <li>Asiento estándar (ECO1–ECO10)</li>
+                <li>Bebida de cortesía en vuelo</li>
+            </ul>
+        </div>
+
+        <div class="clase-card" id="card-max" onclick="seleccionarCategoria('max')">
+            <h3>Clase Max</h3>
+            <div class="precio-clase">${{ "%.2f"|format(vuelo.precio_base * 1.35) }} MXN</div>
+            <p style="margin: 4px 0;"><b>Asientos libres:</b> {{ vuelo.asientos_libres_max() }} / 6</p>
+            <ul>
+                <li>Artículo personal + equipaje de mano</li>
+                <li>Mayor espacio para piernas (MAX1–MAX6)</li>
+                <li>Snack y bebida incluidos</li>
+            </ul>
+        </div>
+
+        <div class="clase-card" id="card-premium" onclick="seleccionarCategoria('premium')">
+            <h3>Clase Premium</h3>
+            <div class="precio-clase">${{ "%.2f"|format(vuelo.precio_base * 1.75) }} MXN</div>
+            <p style="margin: 4px 0;"><b>Asientos libres:</b> {{ vuelo.asientos_libres_premium() }} / 4</p>
+            <ul>
+                <li>Equipaje de mano + maleta documentada</li>
+                <li>Asientos delanteros preferenciales (PRE1–PRE4)</li>
+                <li>Abordaje prioritario y servicio completo</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- REPRESENTACIÓN VISUAL DE LOS ASIENTOS DEL AVIÓN -->
+    <div class="panel-asientos">
+        <h2 style="margin-top: 0;">Escoge tu asiento en el avión</h2>
+
+        <div class="leyenda">
+            <span>🟢 Disponible (clic para elegir)</span>
+            <span>🔵 Seleccionado</span>
+            <span>⬜ Ocupado</span>
+        </div>
+
+        <div class="cabina">
+            <div class="frente-avion">Asientos disponibles (en caso de ser redondo el viaje , tendra el mismo asiento durante los dos vuelos)</div>
+
+            <div class="seccion-asientos">
+                <h4>Premium (PRE1 – PRE4)</h4>
+                <div class="fila-asientos">
+                    {% for codigo_asiento, libre in vuelo.premium.items() %}
+                        <button type="button"
+                            class="asiento-btn {% if not libre %}ocupado{% endif %}"
+                            data-categoria="premium"
+                            data-asiento="{{ codigo_asiento }}"
+                            {% if not libre %}disabled{% endif %}
+                            onclick="elegirAsiento(this)">
+                            {{ codigo_asiento }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="seccion-asientos">
+                <h4>Max (MAX1 – MAX6)</h4>
+                <div class="fila-asientos">
+                    {% for codigo_asiento, libre in vuelo.max.items() %}
+                        <button type="button"
+                            class="asiento-btn {% if not libre %}ocupado{% endif %}"
+                            data-categoria="max"
+                            data-asiento="{{ codigo_asiento }}"
+                            {% if not libre %}disabled{% endif %}
+                            onclick="elegirAsiento(this)">
+                            {{ codigo_asiento }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="seccion-asientos">
+                <h4>Económica (ECO1 – ECO10)</h4>
+                <div class="fila-asientos">
+                    {% for codigo_asiento, libre in vuelo.economica.items() %}
+                        <button type="button"
+                            class="asiento-btn {% if not libre %}ocupado{% endif %}"
+                            data-categoria="economica"
+                            data-asiento="{{ codigo_asiento }}"
+                            {% if not libre %}disabled{% endif %}
+                            onclick="elegirAsiento(this)">
+                            {{ codigo_asiento }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" class="form-reserva">
+            <input type="hidden" name="vuelo_ida" value="{{ vuelo_ida }}">
+            <input type="hidden" name="vuelo_regreso" value="{{ vuelo_regreso }}">
+
+            <label><b>Categoría elegida:</b></label>
+            <select name="categoria" id="select-categoria" required onchange="marcarTarjeta(this.value)">
+                <option value="economica">Económica (Libres: {{ vuelo.asientos_libres_economica() }})</option>
+                <option value="max">Max (Libres: {{ vuelo.asientos_libres_max() }})</option>
+                <option value="premium">Premium (Libres: {{ vuelo.asientos_libres_premium() }})</option>
+            </select>
+
+            <label><b>Código del asiento seleccionado:</b></label>
+            <input type="text" name="asiento" id="input-asiento" placeholder="Haz clic en un asiento o escribe ej. ECO1" required style="text-transform: uppercase;">
+
+            <button type="submit" class="btn-confirmar">Confirmar Reserva</button>
+        </form>
+
+        <br>
+        <a href="/vuelos" style="color: #0d3b8e; font-weight: bold;">⬅️ Volver a vuelos</a>
+    </div>
+
+    <script>
+        function marcarTarjeta(categoria) {
+            document.querySelectorAll('.clase-card').forEach(card => card.classList.remove('activa'));
+            const tarjeta = document.getElementById('card-' + categoria);
+            if (tarjeta) {
+                tarjeta.classList.add('activa');
+            }
+        }
+
+        function seleccionarCategoria(categoria) {
+            document.getElementById('select-categoria').value = categoria;
+            marcarTarjeta(categoria);
+        }
+
+        function elegirAsiento(boton) {
+            if (boton.disabled) return;
+
+            document.querySelectorAll('.asiento-btn.seleccionado').forEach(btn => {
+                btn.classList.remove('seleccionado');
+            });
+            boton.classList.add('seleccionado');
+
+            const categoria = boton.getAttribute('data-categoria');
+            const asiento = boton.getAttribute('data-asiento');
+
+            document.getElementById('select-categoria').value = categoria;
+            document.getElementById('input-asiento').value = asiento;
+            marcarTarjeta(categoria);
+        }
+
+        marcarTarjeta(document.getElementById('select-categoria').value);
+    </script>
+</body>
+</html>

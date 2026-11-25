@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Bancario - 67 Airlines</title>
+    <style>
+        body {
+            background-color: rgb(11, 107, 186);
+            font-family: Arial, sans-serif;
+            padding: 25px;
+            display: flex;
+            justify-content: center;
+        }
+        .img-esquina {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 110px;
+            height: auto;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            z-index: 10;
+        }
+        .card {
+            background: rgb(235, 236, 237);
+            padding: 25px 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+        .resumen {
+            background: #f0f4ff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .aviso-demo {
+            background: #fff8db;
+            border: 1px solid #f0d56b;
+            color: #5c4900;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .campo {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+        .fila-doble {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        label {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        input, select {
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 11px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo 67 Airlines" class="img-esquina">
+    <div class="card">
+        <h2>Pago con Tarjeta (Simulador)</h2>
+
+        <div class="aviso-demo">
+            Modo de prueba: puedes escribir cualquier número de tarjeta, fecha o CVV.
+        </div>
+
+        <div class="resumen">
+            <b>Pasajero:</b> {{ pasajero.nombre }} {{ pasajero.apellido }}<br>
+            {% if not es_redondo %}
+                <p><b>Vuelo:</b> {{ vuelo.codigo }}</p>
+                <p><b>Ruta:</b> {{ vuelo.origen }} ➔ {{ vuelo.destino }}</p>
+                <p><b>Horario:</b> {{ vuelo.horario }}</p>
+                <p><b>Categoría elegida:</b> {{ categoria.upper() }}</p>
+                <p><b>Asiento asignado:</b> {{ asiento }}</p>
+            {% endif %}
+
+            {% if es_redondo and obj_ida and obj_regreso %}
+                <hr>
+                <p><b>Vuelo de ida:</b> {{ obj_ida.codigo }} ({{ obj_ida.origen }} ➔ {{ obj_ida.destino }} | {{ obj_ida.horario }}) — ${{ "%.2f"|format(precio_ida) }} MXN</p>
+                <p><b>Vuelo de regreso:</b> {{ obj_regreso.codigo }} ({{ obj_regreso.origen }} ➔ {{ obj_regreso.destino }} | {{ obj_regreso.horario }}) — ${{ "%.2f"|format(precio_regreso) }} MXN</p>
+                <p><b>Categoría elegida:</b> {{ categoria.upper() }}</p>
+                <p><b>Asiento asignado:</b> {{ asiento }}</p>
+            {% else %}
+                {% if vuelo_ida %}
+                    <p><b>Vuelo de ida:</b> {{ vuelo_ida }}</p>
+                {% endif %}
+                {% if vuelo_regreso %}
+                    <p><b>Vuelo de regreso:</b> {{ vuelo_regreso }}</p>
+                {% endif %}
+            {% endif %}
+
+            <b>Total a pagar:</b> ${{ "%.2f"|format(precio_total if precio_total is defined else precio) }} MXN
+        </div>
+
+        <form action="{{ url_for('procesar_pago', codigo=vuelo.codigo) }}" method="POST">
+            <!-- Datos del vuelo y reserva -->
+            <input type="hidden" name="categoria" value="{{ categoria }}">
+            <input type="hidden" name="asiento" value="{{ asiento }}">
+            <input type="hidden" name="precio" value="{{ precio_total if precio_total is defined else precio }}">
+            <input type="hidden" name="vuelo_ida" value="{{ vuelo_ida }}">
+            <input type="hidden" name="vuelo_regreso" value="{{ vuelo_regreso }}">
+
+            <!-- Datos del pasajero -->
+            <input type="hidden" name="nombre" value="{{ pasajero.nombre }}">
+            <input type="hidden" name="apellido" value="{{ pasajero.apellido }}">
+            <input type="hidden" name="fecha_nacimiento" value="{{ pasajero.fecha_nacimiento }}">
+            <input type="hidden" name="correo" value="{{ pasajero.correo }}">
+            <input type="hidden" name="telefono" value="{{ pasajero.telefono }}">
+            <input type="hidden" name="documento" value="{{ pasajero.documento }}">
+
+            <div class="campo">
+                <label for="banco">Banco / Red</label>
+                <select id="banco" name="banco">
+                    <option value="BBVA Simulado">BBVA </option>
+                    <option value="Banorte Simulado">Banorte </option>
+                    <option value="Santander Simulado">Santander </option>
+                    <option value="Nu / Spin Simulado">Nu / Spin </option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="titular">Nombre del titular</label>
+                <input type="text" id="titular" name="titular" required placeholder="Ej. Alfonso Gonzalez">
+            </div>
+
+            <div class="campo">
+                <label for="numero_tarjeta">Número de tarjeta</label>
+                <input type="text" id="numero_tarjeta" name="numero_tarjeta" required placeholder="Cualquier número (ej. 1234)">
+            </div>
+
+            <div class="fila-doble">
+                <div class="campo">
+                    <label for="vencimiento">Vencimiento</label>
+                    <input type="text" id="vencimiento" name="vencimiento" required placeholder="Ej. 12/29">
+                </div>
+
+                <div class="campo">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" name="cvv" required placeholder="Ej. 000">
+                </div>
+            </div>
+
+            <button type="submit">Pagar y Confirmar Reserva</button>
+        </form>
+    </div>
+</body>
+</html>
